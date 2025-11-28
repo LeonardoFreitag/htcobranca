@@ -1,35 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+
+import { ThemeProvider } from "@mui/material/styles"; // Correção final
+import { CssBaseline } from "@mui/material";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import Dashboard from "./pages/Dashboard";
+import SignIn from "./pages/SignIn";
+import { theme } from "./theme";
+import SideNav from "./components/SideNav";
+import AccountsReceivable from "./pages/AccountsReceivable";
+import Settings from "./pages/Settings";
+import Clients from "./pages/Clients";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <AuthProvider>
+          <AuthenticatedApp />
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
+  );
 }
 
-export default App
+function AuthenticatedApp() {
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/*" element={<SignIn />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <SideNav>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/accounts-receivable" element={<AccountsReceivable />} />
+        <Route path="/settings" element={<Settings />} />
+      </Routes>
+    </SideNav>
+  );
+}
+
+export default App;

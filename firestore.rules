@@ -1,0 +1,33 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Regra para a coleção 'users'
+    match /users/{userId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regra para a coleção 'settings'
+    match /settings/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Regra para a coleção de contas a receber
+    match /accountsReceivable/{accountId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // Regra para a coleção de clientes
+    match /clients/{clientId} {
+      // Permite criar um documento se o userId do novo documento corresponder ao do usuário
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      // Permite ler, atualizar e deletar um documento se o userId existente corresponder ao do usuário
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+  }
+}
