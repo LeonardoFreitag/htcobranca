@@ -17,11 +17,36 @@ If you are developing a production application, we recommend updating the config
 
 ```js
 export default defineConfig([
+
+## Local Functions / Emulator Tips
+
+If the Firebase Functions emulator fails to load your built functions (e.g. "Failed to parse build specification"), you can run a local debug server as a fallback:
+
+1) Build functions and start the local server:
+```bash
+cd functions
+npm run build
+node local-server.js
+```
+
+This starts the local server at `http://localhost:5002` and mounts the functions under `/htcobranca-43a32/us-central1/api` to match Firebase emulator rewrite rules.
+
+2) Set `VITE_FUNCTIONS_URL` in your `.env` to point the frontend to the debug server:
+```
+VITE_FUNCTIONS_URL=http://localhost:5002/htcobranca-43a32/us-central1/api
+```
+
+3) Start the frontend and test the routes (e.g. `GET /api/asaas/customers` by clicking "Importar Clientes do Asaas").
+
+4) If you'd prefer using the emulator, free the port 5001 or reconfigure `firebase.json` to a different port and restart the emulator:
+```bash
   globalIgnores(['dist']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
       // Other configs...
+
+```
 
       // Remove tseslint.configs.recommended and replace with this
       tseslint.configs.recommendedTypeChecked,
