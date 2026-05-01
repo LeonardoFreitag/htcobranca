@@ -204,7 +204,7 @@ export default function SideNav({ children }: { children: React.ReactNode }) {
           </ListItem>
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1 }}>
+      <Box component="main" sx={{ flexGrow: 1, minWidth: 0, overflowX: 'hidden', overflowY: 'auto' }}>
         <DrawerHeader />
         {children}
       </Box>

@@ -54,47 +54,53 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 3 }}>
       <Grid container spacing={3}>
-        {/* <Grid size={12}> */}
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#4caf50', color: 'white', width: '100%' }}>
-            <People sx={{ fontSize: 40, mr: 2 }} />
-            <CardContent>
-              <Typography variant="h6" component="div">
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2.5, backgroundColor: '#4caf50', color: 'white', borderRadius: 3, boxShadow: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, p: 1.5, mr: 2 }}>
+              <People sx={{ fontSize: 36 }} />
+            </Box>
+            <CardContent sx={{ p: '0 !important' }}>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Clientes Ativos
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h4" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                 {dashboardData.activeClients}
               </Typography>
             </CardContent>
           </Card>
-        {/* </Grid> */}
-        {/* <Grid size={12}> */}
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#ff9800', color: 'white', width: '100%' }}>
-            <AttachMoney sx={{ fontSize: 40, mr: 2 }} />
-            <CardContent>
-              <Typography variant="h6" component="div">
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2.5, backgroundColor: '#ff9800', color: 'white', borderRadius: 3, boxShadow: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, p: 1.5, mr: 2 }}>
+              <AttachMoney sx={{ fontSize: 36 }} />
+            </Box>
+            <CardContent sx={{ p: '0 !important' }}>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Cobranças em Aberto
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                 {dashboardData.openCharges.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </Typography>
             </CardContent>
           </Card>
-        {/* </Grid> */}
-        {/* <Grid size={12}> */}
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#f44336', color: 'white', width: '100%' }}>
-            <MoneyOff sx={{ fontSize: 40, mr: 2 }} />
-            <CardContent>
-              <Typography variant="h6" component="div">
+        </Grid>
+        <Grid size={{ xs: 12, sm: 4 }}>
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2.5, backgroundColor: '#f44336', color: 'white', borderRadius: 3, boxShadow: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 2, p: 1.5, mr: 2 }}>
+              <MoneyOff sx={{ fontSize: 36 }} />
+            </Box>
+            <CardContent sx={{ p: '0 !important' }}>
+              <Typography variant="body2" sx={{ opacity: 0.9 }}>
                 Cobranças Vencidas
               </Typography>
-              <Typography variant="h4">
+              <Typography variant="h5" sx={{ fontWeight: 'bold', lineHeight: 1.2 }}>
                 {dashboardData.overdueCharges.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
               </Typography>
             </CardContent>
           </Card>
-        {/* </Grid> */}
+        </Grid>
       </Grid>
     </Box>
   );

@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Container,
   IconButton,
   TextField,
   InputAdornment
@@ -429,54 +428,57 @@ const Clients: React.FC = () => {
         return `${year}-${month}-${day}`;
       };
 
-      // Preparar dados para enviar à API com a data formatada
-      const dataToSend = {
-        ...signatureData,
+      // Monta payload apenas com campos aceitos pela API Asaas
+      const buildAsaasPayload = (includeCustomer: boolean) => ({
+        ...(includeCustomer && { customer: signatureData.customer }),
+        billingType: signatureData.billingType,
+        value: signatureData.value,
         nextDueDate: formatDateForAsaas(signatureData.nextDueDate),
-        updatePendingPayments: true, // Para atualizar pagamentos pendentes ao editar
-      };
+        cycle: signatureData.cycle,
+        ...(signatureData.description !== undefined && { description: signatureData.description }),
+        ...(signatureData.interest && { interest: signatureData.interest }),
+        ...(signatureData.fine && { fine: signatureData.fine }),
+        ...(signatureData.discount && { discount: signatureData.discount }),
+        ...(signatureData.endDate && { endDate: formatDateForAsaas(signatureData.endDate) }),
+        ...(signatureData.maxPayments && { maxPayments: signatureData.maxPayments }),
+        ...(signatureData.externalReference && { externalReference: signatureData.externalReference }),
+        ...(signatureData.split && { split: signatureData.split }),
+        ...(signatureData.callback && { callback: signatureData.callback }),
+      });
 
       let response;
 
       if (isEditing) {
-        // PUT - Atualizar assinatura existente
-        response = await functionsApi.put(`/asaas/subscriptions/${signatureData.id}`, dataToSend, {
-          params: { asaasToken: asaasToken }
-        });
-        
+        // PUT - Atualizar assinatura existente (sem customer, sem campos read-only)
+        response = await functionsApi.put(
+          `/asaas/subscriptions/${signatureData.id}`,
+          { ...buildAsaasPayload(false), updatePendingPayments: true },
+          { params: { asaasToken: asaasToken } }
+        );
+
         if (response.status === 200) {
-          console.log('Assinatura atualizada no Asaas:', response.data);
-          
-          // Atualizar Firestore com dados da assinatura
           await handleSave({
             ...clientForSignature,
-            signature: {
-              ...signatureData,
-              id: response.data.id,
-            } as SignatureModel,
+            signature: { ...signatureData, id: response.data.id } as SignatureModel,
           }, clientForSignature.id);
-          
+
           showSnackbar('Assinatura atualizada com sucesso!', 'success');
           setSignatureFormOpen(false);
         }
       } else {
         // POST - Criar nova assinatura
-        response = await functionsApi.post('/asaas/subscriptions', dataToSend, {
-          params: { asaasToken: asaasToken }
-        });
+        response = await functionsApi.post(
+          '/asaas/subscriptions',
+          buildAsaasPayload(true),
+          { params: { asaasToken: asaasToken } }
+        );
 
         if (response.status === 200 || response.status === 201) {
-          console.log('Assinatura criada no Asaas:', response.data);
-          
-          // Atualizar Firestore com dados da assinatura incluindo o ID do Asaas
           await handleSave({
             ...clientForSignature,
-            signature: {
-              ...signatureData,
-              id: response.data.id,
-            } as SignatureModel,
+            signature: { ...signatureData, id: response.data.id } as SignatureModel,
           }, clientForSignature.id);
-          
+
           showSnackbar('Assinatura criada com sucesso!', 'success');
           setSignatureFormOpen(false);
         }
@@ -488,30 +490,50 @@ const Clients: React.FC = () => {
   };
   
   return (
-    <Container sx={{ mt: 1, position: 'relative' }}>
-      <Box sx={{ display: 'flex', mb: 2, mt: 2, alignItems: 'center' }}>
-        <Typography variant="h6" component="h6">
-          {`Meus Clientes ${asaasToken ? '' : '(Token Asaas não configurado)'}`}
-        </Typography>
-        <IconButton onClick={handleOpenForm} size="large" sx={{ position: 'absolute', right: 12, backgroundColor: 'green' }} aria-label='Add new client'>
-          <Add sx={{ color: 'white'}}/>
+    <Box sx={{ mt: 1, px: 2, pb: 2, boxSizing: 'border-box', width: '100%', overflowX: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', mb: 2, mt: 2, alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box>
+          <Typography variant="h6" fontWeight={700}>Meus Clientes</Typography>
+          {!asaasToken && (
+            <Typography variant="caption" color="warning.main">Token Asaas não configurado</Typography>
+          )}
+        </Box>
+        <IconButton
+          onClick={handleOpenForm}
+          size="large"
+          sx={{ backgroundColor: 'primary.main', '&:hover': { backgroundColor: 'primary.dark' } }}
+          aria-label="Adicionar cliente"
+        >
+          <Add sx={{ color: 'white' }} />
         </IconButton>
       </Box>
 
+      {/* Busca */}
       <TextField
         fullWidth
         placeholder="Pesquisar por empresa, nome, cidade, CPF/CNPJ, email ou telefone..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{ mb: 3 }}
+        size="small"
+        sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: 3 } }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Search />
+              <Search fontSize="small" />
             </InputAdornment>
           ),
         }}
       />
+
+      {/* Contador */}
+      {clients.length > 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+          {filteredClients.length === clients.length
+            ? `${clients.length} cliente${clients.length !== 1 ? 's' : ''}`
+            : `${filteredClients.length} de ${clients.length} cliente${clients.length !== 1 ? 's' : ''}`}
+        </Typography>
+      )}
 
       {filteredClients.length > 0 ? (
         filteredClients.map((client) => (
@@ -528,8 +550,8 @@ const Clients: React.FC = () => {
         ))
       ) : (
         <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
-          {clients.length === 0 
-            ? 'Nenhum cliente cadastrado ainda.' 
+          {clients.length === 0
+            ? 'Nenhum cliente cadastrado ainda.'
             : `Nenhum resultado encontrado para "${searchTerm}".`
           }
         </Typography>
@@ -563,7 +585,7 @@ const Clients: React.FC = () => {
         onCancel={handleCloseConfirmDialog}
       />
 
-    </Container>
+    </Box>
   );
 };
 

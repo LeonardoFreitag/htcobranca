@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Card, CardContent, CardActions, Typography, Button, Chip, Box, IconButton } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Sync } from '@mui/icons-material';
+import { Card, CardContent, CardActions, Typography, Button, Chip, Box, Divider, IconButton, Tooltip } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, Sync, Person, Email, Badge, Tag } from '@mui/icons-material';
 import type { ClientModel } from '../models/ClientModel';
 import { BillingType } from '../models/SignatureModel';
 
@@ -15,111 +15,160 @@ interface ClientCardProps {
   onDeleteSignature?: (client: ClientModel) => void;
 }
 
-// Vamos assumir que o objeto client pode ter esses campos, mesmo que não estejam no modelo formal.
-// Isso facilita a conexão posterior.
-// type ClientWithStatus = ClientModel & { active?: boolean; billingRegistered?: boolean };
+const InfoRow: React.FC<{ icon: React.ReactNode; label: string; value?: string }> = ({ icon, label, value }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, minWidth: 0, overflow: 'hidden' }}>
+    <Box sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icon}</Box>
+    <Typography variant="caption" color="text.secondary" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+      <Box component="span" sx={{ fontWeight: 500, color: 'text.primary' }}>{label}: </Box>
+      {value || 'N/A'}
+    </Typography>
+  </Box>
+);
 
 const ClientCard: React.FC<ClientCardProps> = ({ client, onEdit, onToggleActive, onAddSignature, onSyncSignature, onEditSignature, onDeleteSignature }) => {
-  const typedClient = client as ClientModel;
+  const isActive = client.asaasIsRegistered !== false;
 
-  
+  const billingTypeLabel = (type?: string) => {
+    if (type === BillingType.BOLETO) return 'Boleto';
+    if (type === BillingType.CREDIT_CARD) return 'Cartão de Crédito';
+    if (type === BillingType.PIX) return 'PIX';
+    return 'Não definido';
+  };
+
+  const formatDate = (date: unknown): string => {
+    if (date instanceof Date) return date.toLocaleDateString('pt-BR');
+    const d = date as { toDate?: () => Date };
+    return d?.toDate?.()?.toLocaleDateString('pt-BR') || 'N/A';
+  };
+
+  const getDueDay = (date: unknown): string => {
+    if (date instanceof Date) return String(date.getDate());
+    const d = date as { toDate?: () => Date };
+    return String(d?.toDate?.()?.getDate() || 'N/A');
+  };
+
   return (
-    <Card sx={{ mb: 2, flex: 1, position: 'relative' }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', position: 'relative', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant="caption" component="div">
-              {typedClient.name}
+    <Card sx={{ mb: 2, borderRadius: 3, boxShadow: 2, border: '1px solid', borderColor: 'divider', width: '100%', overflow: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{ px: 2, pt: 2, pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography variant="subtitle2" fontWeight={700} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={client.name}>
+            {client.name}
+          </Typography>
+          {client.company && client.company !== client.name && (
+            <Typography variant="caption" color="text.secondary" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+              {client.company}
             </Typography>
-            <Typography color="text.secondary" variant="caption">
-              {typedClient.email}
-            </Typography>
-            <Typography variant="caption">
-              CPF/CNPJ: {typedClient.cpfCnpj}
-            </Typography>
-            <Typography variant="caption">
-              ASAAS ID: {typedClient.asaasId || 'N/A'}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, position: 'absolute', top: 0, right: 0 }}>
-            <Chip
-              label={(typedClient.asaasIsRegistered  === false) ? 'Off' : 'On'}
-              color={typedClient.asaasIsRegistered === false ? 'error' : 'success'}
-              size="small"
-            />
-          </Box>
+          )}
         </Box>
-        
-        {typedClient.signature?.customer ? (
-          <Box sx={{ mt: 2, p: 1.5, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-            <Typography variant="caption" component="div" sx={{ fontWeight: 'bold', mb: 1 }}>
-              Informações da Assinatura
+        <Chip
+          label={isActive ? 'Ativo' : 'Inativo'}
+          color={isActive ? 'success' : 'default'}
+          size="small"
+          sx={{ fontWeight: 600, fontSize: '0.7rem', flexShrink: 0 }}
+        />
+      </Box>
+
+      <CardContent sx={{ pt: 0.5, pb: '0 !important' }}>
+        {/* Dados do cliente */}
+        <Box sx={{ mb: 1.5 }}>
+          <InfoRow icon={<Email sx={{ fontSize: 14 }} />} label="Email" value={client.email} />
+          <InfoRow icon={<Badge sx={{ fontSize: 14 }} />} label="CPF/CNPJ" value={client.cpfCnpj} />
+          {client.asaasId && (
+            <InfoRow icon={<Tag sx={{ fontSize: 14 }} />} label="ASAAS ID" value={client.asaasId} />
+          )}
+        </Box>
+
+        <Divider sx={{ my: 1.5 }} />
+
+        {/* Assinatura */}
+        {client.signature?.customer ? (
+          <Box sx={{ backgroundColor: 'grey.50', borderRadius: 2, p: 1.5 }}>
+            <Typography variant="caption" fontWeight={700} color="primary" sx={{ display: 'block', mb: 1 }}>
+              Assinatura
             </Typography>
-            <Typography variant="caption" component="div">
-              Tipo de Cobrança: {typedClient.signature.billingType === BillingType.BOLETO ? 'Boleto' : 
-                                  typedClient.signature.billingType === BillingType.CREDIT_CARD ? 'Cartão de Crédito' : 
-                                  typedClient.signature.billingType === BillingType.PIX ? 'PIX' : 
-                                  'Não definido'}
-            </Typography>
-            <Typography variant="caption" component="div">
-              Valor: R$ {typedClient.signature.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </Typography>
-            <Typography variant="caption" component="div">
-              Primeiro Vencimento: {typedClient.signature.nextDueDate instanceof Date 
-                ? typedClient.signature.nextDueDate.toLocaleDateString('pt-BR')
-                : (typedClient.signature.nextDueDate as any)?.toDate?.()?.toLocaleDateString('pt-BR') || 'N/A'}
-            </Typography>
-            <Typography variant="caption" component="div" sx={{ mb: 1.5 }}>
-              Dia de Vencimento: {typedClient.signature.nextDueDate instanceof Date 
-                ? typedClient.signature.nextDueDate.getDate()
-                : (typedClient.signature.nextDueDate as any)?.toDate?.()?.getDate() || 'N/A'}
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-              <Button 
-                size="small" 
-                variant="contained" 
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0.5, mb: 1.5 }}>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Tipo</Typography>
+                <Typography variant="caption" fontWeight={600}>{billingTypeLabel(client.signature.billingType)}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Valor</Typography>
+                <Typography variant="caption" fontWeight={600}>
+                  {client.signature.value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Primeiro Vcto.</Typography>
+                <Typography variant="caption" fontWeight={600}>{formatDate(client.signature.nextDueDate)}</Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" color="text.secondary" display="block">Dia Vcto.</Typography>
+                <Typography variant="caption" fontWeight={600}>{getDueDay(client.signature.nextDueDate)}</Typography>
+              </Box>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+              <Button
+                size="small"
+                variant="contained"
                 color="primary"
-                startIcon={<EditIcon />}
-                onClick={() => onEditSignature?.(typedClient)}
-                sx={{ minWidth: 100, borderRadius: 2 }}
+                startIcon={<EditIcon sx={{ fontSize: 14 }} />}
+                onClick={() => onEditSignature?.(client)}
+                sx={{ borderRadius: 2, fontSize: '0.72rem', py: 0.5 }}
               >
                 Editar
               </Button>
-              <Button 
-                size="small" 
-                variant="contained" 
+              <Button
+                size="small"
+                variant="contained"
                 color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => onDeleteSignature?.(typedClient)}
-                sx={{ minWidth: 100, borderRadius: 2 }}
+                startIcon={<DeleteIcon sx={{ fontSize: 14 }} />}
+                onClick={() => onDeleteSignature?.(client)}
+                sx={{ borderRadius: 2, fontSize: '0.72rem', py: 0.5 }}
               >
                 Excluir
               </Button>
             </Box>
           </Box>
         ) : (
-          <Box sx={{ mt: 2, p: 1.5, backgroundColor: '#f5f5f5', borderRadius: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="caption" component="div" color="text.secondary">
+          <Box sx={{ backgroundColor: 'grey.50', borderRadius: 2, p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="caption" color="text.secondary">
               Nenhuma assinatura ativa
             </Typography>
-            <IconButton size="small" aria-label="sincronizar assinatura" sx={{ p: 2, backgroundColor: 'green' }} onClick={() => onSyncSignature?.(typedClient)}>
-              <Sync sx={{ fontSize: 16, color: 'white' }} />
-            </IconButton>
-            <IconButton size="small" aria-label="adicionar assinatura" sx={{ p: 2, backgroundColor: 'green' }} onClick={() => onAddSignature?.(typedClient)}>
-              <AddIcon sx={{ fontSize: 16, color: 'white' }} />
-            </IconButton>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <Tooltip title="Sincronizar assinatura do Asaas">
+                <IconButton size="small" sx={{ backgroundColor: 'info.main', '&:hover': { backgroundColor: 'info.dark' } }} onClick={() => onSyncSignature?.(client)}>
+                  <Sync sx={{ fontSize: 16, color: 'white' }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Adicionar assinatura">
+                <IconButton size="small" sx={{ backgroundColor: 'success.main', '&:hover': { backgroundColor: 'success.dark' } }} onClick={() => onAddSignature?.(client)}>
+                  <AddIcon sx={{ fontSize: 16, color: 'white' }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
         )}
       </CardContent>
-      <CardActions sx={{ justifyContent: 'flex-end' }}>
-        <Button size="small" onClick={() => onEdit(typedClient)} variant='outlined'>Editar</Button>
-        <Button size="small" 
-          color={typedClient.asaasIsRegistered === false ? 'success' : 'warning'} 
-          onClick={() => onToggleActive(typedClient)} 
-          variant='outlined'
-          sx={{borderColord: typedClient.asaasIsRegistered === false ? 'green' : 'orange', minWidth: '90px'}}
+
+      <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 1.5, pt: 1, gap: 1, flexWrap: 'wrap' }}>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<Person sx={{ fontSize: 14 }} />}
+          onClick={() => onEdit(client)}
+          sx={{ borderRadius: 2, fontSize: '0.72rem' }}
         >
-          {typedClient.asaasIsRegistered === false ? 'Ativar' : 'Desativar'}
+          Editar Cliente
+        </Button>
+        <Button
+          size="small"
+          variant={isActive ? 'outlined' : 'contained'}
+          color={isActive ? 'warning' : 'success'}
+          onClick={() => onToggleActive(client)}
+          sx={{ borderRadius: 2, fontSize: '0.72rem', minWidth: 80 }}
+        >
+          {isActive ? 'Desativar' : 'Ativar'}
         </Button>
       </CardActions>
     </Card>
