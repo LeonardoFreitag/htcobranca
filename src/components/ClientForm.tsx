@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -20,61 +20,45 @@ interface ClientFormProps {
 }
 
 const ClientForm: React.FC<ClientFormProps> = ({ open, onClose, onSave, clientToEdit }) => {
-  const [formState, setFormState] = useState<Partial<ClientModel>>({
-    name: '',
-    cpfCnpj: '',
-    email: '',
-    phone: '',
-    mobilePhone: '',
-    address: '',
-    addressNumber: '',
-    complement: '',
-    province: '',
-    postalCode: '',
-    externalReference: '',
-    notificationDisabled: false,
-    additionalEmails: '',
-    municipalInscription: '',
-    stateInscription: '',
-    observations: '',
-    groupName: '',
-    company: '',
-    foreignCustomer: false,
-    asaasIsRegistered: false,
-    asaasId: '',
-  });
-
-  useEffect(() => {
+  const getInitialFormState = (): Partial<ClientModel> => {
     if (clientToEdit && open) {
-      setFormState(clientToEdit);
-    } else {
-      // Reset para o estado inicial quando for um novo cliente
-      setFormState({
-        name: '',
-        cpfCnpj: '',
-        email: '',
-        phone: '',
-        mobilePhone: '',
-        address: '',
-        addressNumber: '',
-        complement: '',
-        province: '',
-        postalCode: '',
-        externalReference: '',
-        notificationDisabled: false,
-        additionalEmails: '',
-        municipalInscription: '',
-        stateInscription: '',
-        observations: '',
-        groupName: '',
-        company: '',
-        foreignCustomer: false,
-        signatureValue: 0,
-        asaasIsRegistered: false,
-        asaasId: '',    
-      });
+      return clientToEdit;
     }
-  }, [clientToEdit, open]);
+    return {
+      name: '',
+      cpfCnpj: '',
+      email: '',
+      phone: '',
+      mobilePhone: '',
+      address: '',
+      addressNumber: '',
+      complement: '',
+      province: '',
+      postalCode: '',
+      externalReference: '',
+      notificationDisabled: false,
+      additionalEmails: '',
+      municipalInscription: '',
+      stateInscription: '',
+      observations: '',
+      groupName: '',
+      company: '',
+      foreignCustomer: false,
+      asaasIsRegistered: false,
+      asaasId: '',
+    };
+  };
+
+  const [formState, setFormState] = useState<Partial<ClientModel>>(getInitialFormState);
+  const [lastClientToEdit, setLastClientToEdit] = useState<ClientModel | null | undefined>(clientToEdit);
+
+  // Reset form when dialog opens with a different client or when opening/closing
+  if (open && (clientToEdit !== lastClientToEdit)) {
+    setLastClientToEdit(clientToEdit);
+    setFormState(getInitialFormState());
+  } else if (!open && lastClientToEdit !== undefined) {
+    setLastClientToEdit(undefined);
+  }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = event.target;
@@ -93,7 +77,13 @@ const ClientForm: React.FC<ClientFormProps> = ({ open, onClose, onSave, clientTo
 
     console.log('Formulário enviado:', formState)
 
-    await onSave(formState as ClientModel, clientToEdit?.id);
+    // Preserve signature field from original client
+    const dataToSave = {
+      ...formState,
+      signature: clientToEdit?.signature,
+    } as ClientModel;
+
+    await onSave(dataToSave, clientToEdit?.id);
     onClose();
   };
 
@@ -137,9 +127,6 @@ const ClientForm: React.FC<ClientFormProps> = ({ open, onClose, onSave, clientTo
           </Grid>
           <Grid size={12}>
             <TextField name="stateInscription" label="Inscrição Estadual" value={formState.stateInscription} onChange={handleChange} fullWidth />
-          </Grid>
-           <Grid size={12}>
-            <TextField name="signatureValue" label="Valor da Assinatura (R$)" type="number" value={formState.signatureValue} onChange={handleChange} fullWidth />
           </Grid>
            <Grid size={12}>
             <TextField name="observations" label="Observações" value={formState.observations} onChange={handleChange} fullWidth multiline rows={3} />
