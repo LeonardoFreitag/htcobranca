@@ -4,6 +4,7 @@
     "moduleResolution": "node16",
     "noImplicitReturns": true,
     "noUnusedLocals": false,
+    "rootDir": "src",
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
