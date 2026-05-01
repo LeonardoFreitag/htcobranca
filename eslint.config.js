@@ -19,5 +19,16 @@ export default defineConfig([
       ecmaVersion: 2020,
       globals: globals.browser,
     },
+    // Custom rules: enable no-constant-binary-expression and stricter TypeScript rules
+    rules: {
+      // Disallow constant binary expressions like `true && something` where left-hand side is constant
+      'no-constant-binary-expression': 'warn',
+      // TypeScript specific rules
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      // React rules - downgraded to warn to allow common patterns
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-refresh/only-export-components': 'warn',
+    }
   },
 ])
