@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 functions/lib/
+functions/local-server.js
 .firebase/
 
 # Editor directories and files
