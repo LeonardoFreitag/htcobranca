@@ -48,7 +48,7 @@ jobs:
       - name: Build do projeto (frontend)
         run: pnpm build
         env:
-          VITE_FUNCTIONS_URL: ${{ secrets.VITE_FUNCTIONS_URL }}
+          VITE_FUNCTIONS_URL: https://api-jugm753ezq-uc.a.run.app
 
       - name: Build das Cloud Functions
         working-directory: functions
