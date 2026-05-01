@@ -1,3 +1,4 @@
+import type { SignatureModel } from './SignatureModel';
 
 export interface ClientModel {
   id: string;
@@ -27,6 +28,6 @@ export interface ClientModel {
   company?: string;
   foreignCustomer?: boolean;
   asaasIsRegistered: boolean;
-  asaasId: string;
-  signatureValue: number;
+  asaasId?: string;
+  signature?: SignatureModel;
 }
