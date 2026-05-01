@@ -18,18 +18,18 @@ const Dashboard: React.FC = () => {
       try {
         // Fetch clients
         const clientsSnapshot = await getDocs(collection(db, 'clients'));
-        const activeClients = clientsSnapshot.size;
+        const activeClients = clientsSnapshot.docs.length;
 
         // Fetch charges
-        const chargesSnapshot = await getDocs(collection(db, 'charges'));
+        const chargesSnapshot = await getDocs(collection(db, 'payments'));
         let openCharges = 0;
         let overdueCharges = 0;
 
         chargesSnapshot.forEach((doc) => {
           const charge = doc.data();
-          if (charge.status === 'Pendente') {
+          if (charge.status === 'PENDING') {
             openCharges += charge.value;
-          } else if (charge.status === 'Vencida') {
+          } else if (charge.status === 'OVERDUE') {
             overdueCharges += charge.value;
           }
         });
@@ -54,10 +54,10 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <Box>
+    <Box sx={{ p: 2 }}>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#4caf50', color: 'white' }}>
+        {/* <Grid size={12}> */}
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#4caf50', color: 'white', width: '100%' }}>
             <People sx={{ fontSize: 40, mr: 2 }} />
             <CardContent>
               <Typography variant="h6" component="div">
@@ -68,9 +68,9 @@ const Dashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#ff9800', color: 'white' }}>
+        {/* </Grid> */}
+        {/* <Grid size={12}> */}
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#ff9800', color: 'white', width: '100%' }}>
             <AttachMoney sx={{ fontSize: 40, mr: 2 }} />
             <CardContent>
               <Typography variant="h6" component="div">
@@ -81,9 +81,9 @@ const Dashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={4}>
-          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#f44336', color: 'white' }}>
+        {/* </Grid> */}
+        {/* <Grid size={12}> */}
+          <Card sx={{ display: 'flex', alignItems: 'center', p: 2, backgroundColor: '#f44336', color: 'white', width: '100%' }}>
             <MoneyOff sx={{ fontSize: 40, mr: 2 }} />
             <CardContent>
               <Typography variant="h6" component="div">
@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
               </Typography>
             </CardContent>
           </Card>
-        </Grid>
+        {/* </Grid> */}
       </Grid>
     </Box>
   );

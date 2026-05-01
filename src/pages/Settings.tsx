@@ -7,7 +7,9 @@ import { useAuth } from '../contexts/AuthContext';
 import type { AsaasClientModel } from '../models/AsaasClientModel';
 import type { ClientModel } from '../models/ClientModel';
 import type { User } from 'firebase/auth';
-import { api } from '../services/axios';
+// import { api } from '../services/axios';
+import { functionsApi } from '../services/functionsApi';
+import type { SignatureModel } from '../models/SignatureModel';
 
 
 interface SettingsData {
@@ -15,15 +17,6 @@ interface SettingsData {
   interestPercentage: number;
   daysToStartInterest: number;
   tokenAsaas: string;
-}
-
-interface AsaasClientListResponse {
-  object: 'list';
-  hasMore: boolean;
-  totalCount: number;
-  limit: number;
-  offset: number;
-  data: AsaasClientModel[];
 }
 
 const Settings: React.FC = () => {
@@ -40,7 +33,7 @@ const Settings: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const [asaasClients, setAsaasClients] = useState<AsaasClientModel[]>([]);
-  const [firestoreClients, setFirestoreClients] = useState<ClientModel[]>([]);
+  // const [firestoreClients, setFirestoreClients] = useState<ClientModel[]>([]);
 
 
   useEffect(() => {
@@ -95,23 +88,31 @@ const Settings: React.FC = () => {
     setError(null);
 
     try {
+      // Get Firebase idToken to send to the Cloud Function for authentication
       // const idToken = await user.getIdToken();
-      console.log(settings.tokenAsaas);
-      const response = await api.get('/customers?limit=10', {
-        headers: {
-          'accept': 'application/json',
-          'access_tokan': settings.tokenAsaas,
-        },
+      // Call our backend Cloud Function that wraps the Asaas API to avoid CORS and token exposure
+      // const response = await functionsApi.get('/asaas/customers', {
+      //   headers: {
+      //     Authorization: `Bearer ${idToken}`,
+      //   },
+      // });
+      const response = await functionsApi.get('/asaas/customers', {
+        params: {
+          asaasToken: settings.tokenAsaas,
+        }
       });
 
-      console.log(response.data);
-
-      return response.data;
+      // Response shape from functions is the same as Asaas: { data: AsaasClientModel[] }
+      const clientsData = response.data?.data ?? response.data;
+      setAsaasClients(clientsData ?? []);
+      return clientsData;
 
     } catch (err: any) {
-        setError(`Erro ao buscar clientes do Asaas: ${err.message}`);
-        console.error(err);
-        return []; // Retorna um array vazio em caso de erro
+      const msg = err?.response?.data ?? err?.message ?? 'Erro ao buscar clientes do Asaas.';
+      setError(`Erro ao buscar clientes do Asaas: ${msg}`);
+      console.error(err);
+      setAsaasClients([]);
+      return []; // Retorna um array vazio em caso de erro
     }
     finally {
       setLoading(false);
@@ -125,7 +126,7 @@ const Settings: React.FC = () => {
         const q = query(collection(db, "clients"), where("userId", "==", user.uid));
         const querySnapshot = await getDocs(q);
         const clients = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClientModel));
-        setFirestoreClients(clients);
+        // setFirestoreClients(clients);
         return clients;
     } catch (error) {
         console.error("Erro ao buscar clientes do Firestore: ", error);
@@ -181,7 +182,7 @@ const Settings: React.FC = () => {
         company: newClient.company ?? '',
         asaasIsRegistered: true,
         asaasId: newClient.id,
-        signatureValue: 0,
+        signature: {} as SignatureModel,
       };
       const newClientRef = doc(collection(db, "clients"));
       batch.set(newClientRef, clientData);

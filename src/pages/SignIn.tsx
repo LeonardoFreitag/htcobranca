@@ -85,7 +85,7 @@ const SignIn: React.FC = () => {
             Sign In
           </Button>
           <Grid container>
-            <Grid item>
+            <Grid>
               <MuiLink component={RouterLink} to="/signup" variant="body2">
                 {"Don't have an account? Sign Up"}
               </MuiLink>

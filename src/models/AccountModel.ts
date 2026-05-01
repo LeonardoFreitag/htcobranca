@@ -1,5 +1,4 @@
 
-import { Timestamp } from 'firebase/firestore';
 
 export interface AccountModel {
   id: string; // O ID do documento do Firestore

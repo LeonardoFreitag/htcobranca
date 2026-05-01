@@ -65,7 +65,7 @@ const UserRegistration: React.FC = () => {
         {success && <Alert severity="success" sx={{ mt: 2, width: '100%' }}>{success}</Alert>}
         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -77,7 +77,7 @@ const UserRegistration: React.FC = () => {
                 onChange={(e) => setCnpj(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
@@ -89,7 +89,7 @@ const UserRegistration: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 required
                 fullWidth
