@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+htchtcobranca-43a32-33a68ab2cd87.json
+htcobranca-43a32-33a68ab2cd87.json
+*.json.key
+.env
+.env.*
+!.env.example
+functions/.runtimeconfig.json
